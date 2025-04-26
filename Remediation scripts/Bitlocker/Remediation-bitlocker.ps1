@@ -6,7 +6,8 @@
 
 $drive = "C"
 $status = Get-bitlockervolume -MountPoint $drive
-
+$Pin = ConvertTo-SecureString "123456" -AsPlainText -Force
+$encryption_strength = "Aes256"
 #########################################################################
 ########################## - Functions - ################################
 
@@ -36,6 +37,7 @@ if($status.ProtectionStatus -eq "On"){
     }else{
         Upload-BitlockerKey
         Write-host "${drive}: encrypted but no PIN assigned. Current keyprotectors are:"$status.KeyProtector
+        Enable-BitLocker -MountPoint $drive -EncryptionMethod $encryption_strength  -Pin $Pin -TPMandPinProtector -UsedSpaceOnly -SkipHardwareTest
         #exit 1
     }
 }elseif($status.ProtectionStatus -eq "off"){
@@ -48,13 +50,16 @@ if($status.ProtectionStatus -eq "On"){
     }elseif($status.VolumeStatus -eq "DecryptionInProgess"){
         Upload-BitlockerKey
         Write-host "${drive}: drive currently decrypting. Encryption percentage:"$status.encryptionpercentage"%"
+        Enable-BitLocker -MountPoint $drive -EncryptionMethod $encryption_strength  -Pin $Pin -TPMandPinProtector -UsedSpaceOnly -SkipHardwareTest
         #exit 1
     }elseif($status.VolumeStatus -eq "FullyDecrypted"){
         Write-Host "${drive}: drive not encrypted. Starting remediation. Not protected and status FullyDecrypted"
+        Enable-BitLocker -MountPoint $drive -EncryptionMethod $encryption_strength  -Pin $Pin -TPMandPinProtector -UsedSpaceOnly -SkipHardwareTest
         #exit 1
 
     }elseif($status.EncryptionPercentage -eq "100"){
         Write-Host "${drive}: drive is encrypted but not enabled. Starting remediation. Check keyprotectors"$status.KeyProtector
+        Enable-BitLocker -MountPoint $drive -EncryptionMethod $encryption_strength  -Pin $Pin -TPMandPinProtector -UsedSpaceOnly -SkipHardwareTest
         #exit 1
 
     }
